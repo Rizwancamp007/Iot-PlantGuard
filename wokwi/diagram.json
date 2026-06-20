@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "author": "PlantGuard IoT",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -120,
+      "left": 180,
+      "attrs": { "temperature": "24.5", "humidity": "62" }
+    },
+    {
+      "type": "wokwi-photoresistor",
+      "id": "ldr1",
+      "top": -80,
+      "left": -100,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot1",
+      "top": 180,
+      "left": -100,
+      "attrs": { "value": "50" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 180,
+      "left": 220,
+      "attrs": { "color": "green" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -20,
+      "left": -120,
+      "attrs": { "value": "10000" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 200,
+      "left": 200,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    ["dht1:VCC", "esp:3V3", "red", ["v:20", "h:40"]],
+    ["dht1:SDA", "esp:4", "green", ["v:30", "h:50"]],
+    ["dht1:GND", "esp:GND.2", "black", ["v:40", "h:60"]],
+
+    ["ldr1:VCC", "esp:3V3", "red", ["v:-20", "h:-30"]],
+    ["ldr1:OUT", "r1:1", "orange", ["v:0"]],
+    ["r1:2", "esp:GND.1", "black", ["v:20"]],
+    ["ldr1:OUT", "esp:35", "yellow", ["v:10", "h:10"]],
+
+    ["pot1:SIG", "esp:34", "blue", ["v:-10", "h:20"]],
+    ["pot1:VCC", "esp:3V3", "red", ["v:-30", "h:-10"]],
+    ["pot1:GND", "esp:GND.1", "black", ["v:-20", "h:10"]],
+
+    ["led1:A", "r2:1", "green", ["h:0"]],
+    ["r2:2", "esp:2", "green", ["h:20", "v:-40"]],
+    ["led1:C", "esp:GND.2", "black", ["h:30"]]
+  ]
+}

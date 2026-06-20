@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlantGuard IoT — Smart Plant Monitoring Dashboard</title>
+  <meta name="description" content="Real-time IoT smart plant monitoring dashboard. Tracks soil moisture, temperature, light, and humidity with ESP32 WebSocket telemetry.">
+  <meta name="keywords" content="IoT, ESP32, plant monitoring, smart garden, WebSocket, sensors, dashboard">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Animated Background -->
+  <div class="bg-mesh" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header id="app-header">
+    <div class="header-left">
+      <div class="logo" id="logo">
+        <div class="logo-icon-wrap">
+          <span class="logo-icon">🌿</span>
+          <span class="logo-pulse"></span>
+        </div>
+        <h1 class="logo-text">PLANT<span class="logo-accent">GUARD</span> <span class="logo-sub">IoT</span></h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sim-badge" id="sim-badge">
+        <span class="sim-dot"></span>
+        SIMULATION
+      </div>
+      <div class="connection-status" id="connection-status">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">Initializing</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="dashboard">
+
+    <!-- Simulation Controls -->
+    <section class="sim-controls" id="sim-controls" aria-label="Simulation Controls">
+      <button id="btn-play-pause" class="sim-btn" title="Play/Pause Simulation">
+        <span class="btn-icon" id="btn-pp-icon">▶</span>
+        <span class="btn-label" id="btn-pp-label">Start</span>
+      </button>
+      <div class="speed-controls">
+        <span class="speed-label">Speed</span>
+        <button class="speed-btn active" data-speed="1">1×</button>
+        <button class="speed-btn" data-speed="3">3×</button>
+        <button class="speed-btn" data-speed="5">5×</button>
+        <button class="speed-btn" data-speed="10">10×</button>
+      </div>
+      <div class="virtual-time" id="virtual-time-wrap">
+        <span class="vt-label">Virtual Clock</span>
+        <span class="vt-value" id="virtual-time">06:00 AM</span>
+      </div>
+      <div class="virtual-time" id="virtual-day-wrap">
+        <span class="vt-label">Day Cycle</span>
+        <span class="vt-value" id="virtual-day">Day 1</span>
+      </div>
+    </section>
+
+    <!-- Metric Cards -->
+    <section class="metrics-grid" id="metrics-grid" aria-label="Sensor Readings">
+      <!-- Soil Moisture -->
+      <article class="metric-card" id="card-soil">
+        <div class="metric-ring-wrap">
+          <svg class="metric-ring-svg" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="ring-fill" cx="60" cy="60" r="50" id="ring-soil"/>
+          </svg>
+          <div class="metric-val-center">
+            <span class="metric-value" id="val-soil">--</span>
+            <span class="metric-unit">%</span>
+          </div>
+        </div>
+        <div class="metric-meta">
+          <span class="metric-icon">💧</span>
+          <span class="metric-label">Soil Moisture</span>
+        </div>
+        <span class="metric-status" id="status-soil">Awaiting data</span>
+      </article>
+
+      <!-- Temperature -->
+      <article class="metric-card" id="card-temp">
+        <div class="metric-ring-wrap">
+          <svg class="metric-ring-svg" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="ring-fill" cx="60" cy="60" r="50" id="ring-temp"/>
+          </svg>
+          <div class="metric-val-center">
+            <span class="metric-value" id="val-temp">--</span>
+            <span class="metric-unit">°C</span>
+          </div>
+        </div>
+        <div class="metric-meta">
+          <span class="metric-icon">🌡️</span>
+          <span class="metric-label">Temperature</span>
+        </div>
+        <span class="metric-status" id="status-temp">Awaiting data</span>
+      </article>
+
+      <!-- Light Level -->
+      <article class="metric-card" id="card-light">
+        <div class="metric-ring-wrap">
+          <svg class="metric-ring-svg" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="ring-fill" cx="60" cy="60" r="50" id="ring-light"/>
+          </svg>
+          <div class="metric-val-center">
+            <span class="metric-value" id="val-light">--</span>
+            <span class="metric-unit">lux</span>
+          </div>
+        </div>
+        <div class="metric-meta">
+          <span class="metric-icon">☀️</span>
+          <span class="metric-label">Light Level</span>
+        </div>
+        <span class="metric-status" id="status-light">Awaiting data</span>
+      </article>
+
+      <!-- Humidity -->
+      <article class="metric-card" id="card-humid">
+        <div class="metric-ring-wrap">
+          <svg class="metric-ring-svg" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="ring-fill" cx="60" cy="60" r="50" id="ring-humid"/>
+          </svg>
+          <div class="metric-val-center">
+            <span class="metric-value" id="val-humid">--</span>
+            <span class="metric-unit">%</span>
+          </div>
+        </div>
+        <div class="metric-meta">
+          <span class="metric-icon">💦</span>
+          <span class="metric-label">Humidity</span>
+        </div>
+        <span class="metric-status" id="status-humid">Awaiting data</span>
+      </article>
+    </section>
+
+    <!-- Middle Row -->
+    <section class="middle-row" aria-label="Health and Trends">
+      <!-- Plant Health -->
+      <div class="panel health-panel" id="health-panel">
+        <h2 class="panel-title"><span class="title-icon">🌱</span> Plant Health</h2>
+        <div class="health-ring-wrap">
+          <svg class="health-svg" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="grad-excellent" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4ade80"/>
+                <stop offset="100%" stop-color="#22d3ee"/>
+              </linearGradient>
+              <linearGradient id="grad-good" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4ade80"/>
+                <stop offset="100%" stop-color="#a3e635"/>
+              </linearGradient>
+              <linearGradient id="grad-fair" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fbbf24"/>
+                <stop offset="100%" stop-color="#f97316"/>
+              </linearGradient>
+              <linearGradient id="grad-poor" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f87171"/>
+                <stop offset="100%" stop-color="#ef4444"/>
+              </linearGradient>
+            </defs>
+            <circle class="health-ring-bg" cx="100" cy="100" r="82"/>
+            <circle class="health-ring-fill" cx="100" cy="100" r="82" id="health-ring"/>
+          </svg>
+          <div class="health-center">
+            <span class="health-score" id="health-score">--</span>
+            <span class="health-rating" id="health-rating">LOADING</span>
+          </div>
+        </div>
+        <div class="health-details">
+          <div class="detail-row">
+            <span class="detail-label">Last Watered</span>
+            <span class="detail-value" id="last-watered">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Avg Score (24h)</span>
+            <span class="detail-value" id="avg-score">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Pressure</span>
+            <span class="detail-value" id="pressure-val">— hPa</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="panel chart-panel" id="chart-panel">
+        <h2 class="panel-title"><span class="title-icon">📊</span> Telemetry Trends</h2>
+        <div class="chart-wrap">
+          <canvas id="telemetry-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Row -->
+    <section class="bottom-row" aria-label="Alerts and Stream">
+      <!-- Alert Log -->
+      <div class="panel alert-panel" id="alert-panel">
+        <h2 class="panel-title">
+          <span class="title-icon">🔔</span> Alert Log
+          <span class="alert-badge" id="alert-count">0</span>
+        </h2>
+        <div class="alert-list" id="alert-list">
+          <div class="alert-empty" id="alert-empty">No alerts yet — monitoring active…</div>
+        </div>
+      </div>
+
+      <!-- Telemetry Stream -->
+      <div class="panel stream-panel" id="stream-panel">
+        <h2 class="panel-title">
+          <span class="title-icon">📡</span> Live Telemetry Stream
+          <button class="stream-clear-btn" id="btn-clear-stream" title="Clear Stream">✕</button>
+        </h2>
+        <div class="stream-terminal" id="stream-terminal">
+          <div class="stream-line sys">> PlantGuard IoT v1.0 — Sensor simulation initializing…</div>
+          <div class="stream-line sys">> Press Start to begin telemetry stream</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer id="app-footer">
+    <div class="footer-badges">
+      <span class="tech-badge">ESP32</span>
+      <span class="tech-badge">C++</span>
+      <span class="tech-badge">WebSockets</span>
+      <span class="tech-badge">Chart.js</span>
+      <span class="tech-badge">LittleFS</span>
+    </div>
+    <p class="footer-text">Build with ☕ & 🤍 by Rizwan Khan</p>
+  </footer>
+
+  <script src="simulator.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

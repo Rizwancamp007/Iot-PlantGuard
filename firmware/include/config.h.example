@@ -1,0 +1,52 @@
+/**
+ * PlantGuard IoT - example configuration header.
+ * Copy this file to config.h and fill in your own values.
+ * config.h is gitignored, never commit real credentials.
+ */
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// WiFi credentials
+#define WIFI_SSID       "YOUR_WIFI_SSID"
+#define WIFI_PASS       "YOUR_WIFI_PASSWORD"
+
+// GPIO pin definitions
+#define SOIL_MOISTURE_PIN   34
+#define I2C_SDA_PIN         21
+#define I2C_SCL_PIN         22
+#define STATUS_LED_PIN      2
+
+// Telemetry configuration
+#define TELEMETRY_INTERVAL_MS   2000
+#define MAX_WS_CLIENTS          5
+#define WS_CLEANUP_INTERVAL_MS  1000
+
+// Soil moisture calibration (raw ADC values)
+#define SOIL_RAW_DRY    4095
+#define SOIL_RAW_WET    1500
+
+// Alert thresholds
+#define SOIL_DRY_THRESHOLD      30.0f
+#define SOIL_WET_THRESHOLD      80.0f
+#define TEMP_HIGH_THRESHOLD     35.0f
+#define TEMP_LOW_THRESHOLD      10.0f
+#define HUMIDITY_HIGH_THRESHOLD 85.0f
+#define LIGHT_LOW_THRESHOLD     100.0f
+
+// Plant health weights
+#define WEIGHT_SOIL     0.40f
+#define WEIGHT_TEMP     0.25f
+#define WEIGHT_HUMID    0.15f
+#define WEIGHT_LIGHT    0.20f
+
+// Dashboard authentication
+#define AUTH_ENABLED    true
+#define AUTH_USERNAME   "YOUR_DASHBOARD_USERNAME"
+#define AUTH_PASSWORD   "YOUR_DASHBOARD_PASSWORD"
+
+// Server configuration
+#define HTTP_PORT       80
+#define WS_ENDPOINT     "/ws"
+
+#endif // CONFIG_H

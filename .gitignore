@@ -1,0 +1,14 @@
+# PlatformIO build output
+.pio/
+.pioenvs/
+.piolibdeps/
+# Firmware credentials - see firmware/include/config.h.example
+firmware/include/config.h
+# Secrets and local env
+.env*
+!.env.example
+# Build and editor files
+dist/
+build/
+.vscode/
+*.log
